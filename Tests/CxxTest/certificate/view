@@ -1,0 +1,2 @@
+#simple utility to display contents of a CA certificate
+openssl x509 -noout -text -in $1

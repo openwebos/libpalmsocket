@@ -1,0 +1,123 @@
+/* @@@LICENSE
+*
+*      Copyright (c) 2009-2011 Hewlett-Packard Development Company, L.P.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* LICENSE@@@ */
+
+
+/**
+ * *****************************************************************************
+ * @file psl_main_doxygen_groups.dox
+ * 
+ * @brief  Top level doxygen module definitions for libpalmsocket.
+ * 
+ * *****************************************************************************
+ */
+
+
+/**
+ * @defgroup palmsocket libpalmsocket Documentation
+ *
+ * @brief libpalmsocket Documentation
+ */
+
+
+/** 
+ * @defgroup psl_public libpalmsocket Public API
+ * @ingroup palmsocket
+ * @brief Public API for libpalmsocket.
+ */
+
+
+
+/**
+ * @defgroup psl_palmsocket Palmsocket g_io_channel and Friends
+ * @ingroup psl_public
+ * @brief Public API for Palmsocket GIOChannel and GSource
+ *        abstraction.  Supports plaintext and SSL/TLS modes.
+ */
+
+
+/**
+ * @defgroup psl_error Error API
+ * @ingroup psl_public
+ * @brief  Error numbers and functions for libpalmsocket.
+ */
+
+
+/**
+ * @defgroup psl_log Logging Control API
+ * @ingroup psl_public psl_diag_runtime
+ *
+ * @brief  Logging control API for libpalmsocket.
+ */
+
+
+/**
+ * @defgroup psl_opensslutils openssl utilities
+ * @ingroup psl_public
+ * @brief  libpalmsocket Openssl utilities API.
+ */
+
+
+/**
+ * @defgroup psl_x509utils x509 utilities
+ * @ingroup psl_public
+ * @brief  libpalmsocket's X509-related utilities API.
+ */
+
+
+/**
+ * @defgroup psl_hostlookup Non-blocking IP address resolver
+ * @ingroup psl_public
+ * @brief Public API for libpalmsocket's non-blocking IP address 
+ */
+
+
+/** 
+ * @defgroup psl_diag libpalmsocket Diagnostics
+ * @ingroup palmsocket
+ * @brief libpalmsocket diagnostic features.
+ */
+
+
+/** 
+ * @defgroup psl_diag_compiletime Compile-time Diagnostics
+ * @ingroup psl_diag
+ * @brief Compile-time disgnostic settings for libpalmsocket.
+ */
+
+
+/** 
+ * @defgroup psl_diag_runtime Runtime Diagnostics
+ * @ingroup psl_diag
+ * @brief Runtime disgnostic settings for libpalmsocket.
+ */
+
+
+/**
+ * @defgroup psl_internal libpalmsocket Internal Details 
+ * @ingroup palmsocket
+ * @brief Internal implementation detail useful for developing 
+ *        or debugging libpalmsocket.
+ */
+
+
+/**
+ * @defgroup psl_test libpalmsocket Engineering tests 
+ * @ingroup palmsocket
+ * @brief Engineering tests for libpalmsocket. 
+ */
+

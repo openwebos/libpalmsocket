@@ -1,0 +1,33 @@
+#fetch code from svn repository 
+#svn checkout ....
+
+#create SVNDIR variable, this should point to svn root directory
+export SVNDIR=~/svn
+
+#unpack libraries from device's rootfs. Use rootfs of the device you are building for. Here palm pixie is used:
+#let's suppose rootfs tar file is placed in $SVNDIR/lib  (this file due to its large size was not uploaded on svn)
+cd $SVNDIR/lib
+tar -zxf nova-cust-image-pixie.rootfs.tar.gz ./lib
+tar -zxf nova-cust-image-pixie.rootfs.tar.gz ./usr/lib
+
+#make a couple of symbolic links, for linker to find the necessary libraries:
+cd $SVNDIR/lib/usr/lib
+ln -s libglib-2.0.so.0.1600.6 libglib-2.0.so
+ln -s libgthread-2.0.so.0.1600.6 libgthread-2.0.so
+ln -s libgobject-2.0.so.0.1600.6 libgobject-2.0.so
+
+#rename the following file: (it has wrong behaviour: redirects 'ld' utility to search for libc.so.6 in a wrong path)
+cd $SVNDIR/lib
+mv usr/lib/libc.so usr/lib/_libc.so
+
+#call make:
+#Should compile all the source files into a binary: CxxTests
+#This binary has to be uploaded to the device with the additional files. See $SVNDIR/scripts/upload.bat
+
+cd $SVNDIR/PalmSSL/trunk/PalmCxxTests/Debug
+make all
+
+
+
+
+

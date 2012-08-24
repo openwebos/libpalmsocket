@@ -1,0 +1,81 @@
+#script does the following:
+#	-generates a private key: server.key
+#
+#	-generates self-signed CA Certificates  <certificate>.crt with various settings (e.g. CN, or subj_alt_name)
+#	-creates .pem file by for every above mentioned .crt, by concatenating server.key and <certificate>.crt
+
+#clean output directory
+rm -rf generated
+mkdir generated
+
+#Create a RSA private key for your Apache server (will be Triple-DES encrypted and PEM formatted): 
+#openssl genrsa -des3 -out server.key 1024
+openssl genrsa -out generated/server.key 1024
+
+#You can see the details of this RSA private key via the command: 
+#openssl rsa -noout -text -in server.key
+
+#Create a Certificate Signing Request (CSR) with the server RSA private key (output will be PEM formatted): 
+#openssl req -new -key generated/server.key -out generated/server.csr -config configfile
+
+#Make sure you enter the FQDN ("Fully Qualified Domain Name") of the server when OpenSSL prompts you for the "CommonName", i.e. when you generate a CSR for a website which will be later accessed via https://www.foo.dom/, enter "www.foo.dom" here. You can see the details of this CSR via the command 
+#openssl req -noout -text -in server.csr
+
+
+#-----------------------------------------
+#create and use my own Certificate Authority (CA)
+#Create a RSA private key for your CA (will be Triple-DES encrypted and PEM formatted): 
+#openssl genrsa -des3 -out ca.key 1024
+#openssl genrsa -out generated/ca.key 1024
+
+#You can see the details of this RSA private key via the command 
+#openssl rsa -noout -text -in ca.key
+#openssl req -new -x509 -days 1825 -extensions v3_ca -keyout private/myca.key -out certs/myca.crt -config openssl.my.cnf
+
+#Create a self-signed CA Certificate (X509 structure) with the RSA key server.key (output will be PEM formatted): CN=localhost
+#create the concatenated PEM file
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_localhost.crt -config configfiles/config_localhost
+cat generated/server.key generated/server_localhost.crt > generated/privatekey_localhost.pem
+
+#create CA with CN=libpalmsocket.libpalmsocket.com
+#create PEM with libpalmsocket.libpalmsocket.com
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_libpalmsocket.libpalmsocket.com.crt -config configfiles/config_libpalmsocket.libpalmsocket.com
+cat generated/server.key generated/server_libpalmsocket.libpalmsocket.com.crt > generated/privatekey_libpalmsocket.libpalmsocket.com.pem
+
+#create CA with CN=127.0.0.1
+#create PEM with 127.0.0.1
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_127_0_0_1.crt -config configfiles/config_127_0_0_1
+cat generated/server.key generated/server_127_0_0_1.crt > generated/privatekey_127_0_0_1.pem
+
+#create CA with CN=127.10.10.10
+#create PEM with 127.10.10.10
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_127_10_10_10.crt -config configfiles/config_127_10_10_10
+cat generated/server.key generated/server_127_10_10_10.crt > generated/privatekey_127_10_10_10.pem
+
+#create CA with libpalmsocket.libpalmsocket.com in subjalt_name/DNS
+#create PEM with libpalmsocket.libpalmsocket.com in subjalt_name/DNS
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_subjalt_name_libpalmsocket.libpalmsocket.com.crt -config configfiles/config_subjalt_name_libpalmsocket.libpalmsocket.com -extensions v3_req
+cat generated/server.key generated/server_subjalt_name_libpalmsocket.libpalmsocket.com.crt > generated/privatekey_subjalt_name_libpalmsocket.libpalmsocket.com.pem
+
+#create CA with 127.0.0.1 in subjalt_name/IP
+#create PEM with 127.0.0.1 in subjalt_name/IP
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_subjalt_name_127_0_0_1.crt -config configfiles/config_subjalt_name_127_0_0_1 -extensions v3_req
+cat generated/server.key generated/server_subjalt_name_127_0_0_1.crt > generated/privatekey_subjalt_name_127_0_0_1.pem
+
+#create CA with 127.10.10.10 in subjalt_name/IP
+#create PEM with 127.10.10.10 in subjalt_name/IP
+openssl req -new -x509 -days 365 -key generated/server.key -out generated/server_subjalt_name_127_10_10_10.crt -config configfiles/config_subjalt_name_127_10_10_10 -extensions v3_req
+cat generated/server.key generated/server_subjalt_name_127_10_10_10.crt > generated/privatekey_subjalt_name_127_10_10_10.pem
+
+#You can see the details of this Certificate via the command:
+#openssl x509 -noout -text -in server.crt 
+
+
+
+
+
+
+
+
+
+

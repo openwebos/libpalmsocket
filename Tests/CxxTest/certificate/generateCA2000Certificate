@@ -1,0 +1,49 @@
+#script does the following:
+#	-generates a certificate with validity in the past (2000.jan.1-2001-jan.1)
+#	-for this the following steps are necessary:
+#		-generate a certificate signing request .csr  with 'openssl req'
+#		-sign the certificate signing request with 'openssl ca', result will be a .crt
+
+#create necessary directories
+rm -rf pki_jungle
+mkdir -m 0755 ./pki_jungle
+mkdir -m 0755 \
+     pki_jungle/myCA \
+     pki_jungle/myCA/private \
+     pki_jungle/myCA/certs \
+     pki_jungle/myCA/newcerts \
+     pki_jungle/myCA/crl
+
+touch pki_jungle/myCA/index.txt
+echo '01' > pki_jungle/myCA/serial
+
+#use server.key already generated
+cp generated/server.key pki_jungle/myCA/private/myca.key
+cp generated/server_localhost.crt pki_jungle/myCA/certs/myca.crt
+
+#copy the ready made config file in the location from where it will be used
+cp configfiles/openssl.my.cnf pki_jungle/myCA/
+
+#generate a certificate signing request
+cd pki_jungle/myCA/
+#openssl req -config openssl.my.cnf -new -nodes -keyout private/server.key -out server.csr -days 36
+openssl req -new -key private/myca.key -nodes -out server.csr -days 365 -config openssl.my.cnf
+
+#sign the certificate request with ca specifying explicit start and end dates
+#date format is the following:
+#YYMMDDHHMMSSZ where Z means GMT time
+#000101000000Z
+
+#sign the certificate request with explicit start date, duration
+#openssl ca -config openssl.my.cnf -startdate 010101000001 -days 365 -policy policy_anything -out certs/server.crt -in server.csr -batch
+
+#sign the certificate request with explicit start date, explicit end date
+openssl ca -config openssl.my.cnf -startdate 000101000000Z -enddate 010101000000Z -policy policy_anything -out certs/server.crt -in server.csr -batch
+
+#sign the certificate request with start date as the current system date
+#openssl ca -config openssl.my.cnf -days 365 -policy policy_anything -out certs/server.crt -in server.csr -batch
+
+cd -
+
+#create the .pem file
+cat generated/server.key pki_jungle/myCA/certs/server.crt > generated/privatekey_2000.pem

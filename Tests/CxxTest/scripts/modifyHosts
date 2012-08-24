@@ -1,0 +1,10 @@
+#will append to /etc/hosts file some hostnames with the localhost IP
+
+mount -o remount, rw /
+
+cp /etc/hosts /etc/hosts.backup
+echo " " >> /etc/hosts
+echo "127.0.0.1 libpalmsocket.libpalmsocket.com" >> /etc/hosts
+echo "127.0.0.1 notlibpalmsocket.libpalmsocket.com" >> /etc/hosts
+
+mount -o remount, ro /

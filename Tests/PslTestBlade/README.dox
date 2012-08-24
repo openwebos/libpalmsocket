@@ -1,0 +1,165 @@
+/* @@@LICENSE
+*
+*      Copyright (c) 2009-2011 Hewlett-Packard Development Company, L.P.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* LICENSE@@@ */
+
+/**
+ * *****************************************************************************
+ * @file README.dox
+ * @addtogroup psl_test
+ * 
+ * @brief  This is a README file for libpalmsockettestblade (also known as
+ *         PslTestBlade).
+ * 
+ * @{
+ * *****************************************************************************
+ */
+
+
+/**
+ * @page psl_test_readme README for libpalmsockettestblade
+ *
+ * @section psl_test_readme_overview libpalmsockettestblade overview
+
+libpalmsockettestblade is Palm's engineering test suite using for bring-up and
+debugging of libpalmsocket v2.0.
+
+libpalmsockettestblade is a shared object ("DLL") that executes as a plug-in
+in Palm's PmWsfDaemon host.  libpalmsockettestblade depends on various
+Palm-internal libPmWirelessSystemFramework (wsf::) and WsfTest (wtu::) utilitities.
+
+PmWsfDaemon accepts a configuration file as a parameter; the configuration file
+contains the directory path(s) of the plug-in(s) as well as other info. A sample
+.conf file for libpalmsockettestblade is provided: ./etc/psltestblade/psltestblade.conf.
+
+Assuming you've placed libPalmSocketTestBlade.so in /usr/lib/ and psltestblade.conf
+is in the current working directory, you would launch it as follows:
+
+PmWsfDaemon -c psltestblade.conf
+
+
+libpalmsockettestblade runs in command-line mode, taking input from stdin and
+outputting to stdout/stderr.  Enter 'help' (without the quotes) for a listing
+of all test commands.  Enter 'help' (without quotes) followed by command name for
+detailed information about that command and its args.
+
+You can also run it unattended, redirecting commands from a text file.  The following
+example demonstrates redirection from the 'echo' command instead of a text file:
+
+echo "stress -client rxtx=4000000000 -addr localhost -port 30999 -ssl -pv fblc -server -key star.kruglikov.castle.com.key.pem" | time /usr/bin/PmWsfDaemon -c psltestblade.conf > optimized.results.txt 2>&1 &
+
+
+ * @section psl_test_readme_src_file_structure libpalmsockettestblade Source file structure
+
+o PslTest*.c and PslTest*.h: the test blade's "glue" code for the Wireless System
+Framework.
+
+o TestCmd*.cpp: the main test case source files.  They also contain help text that
+describes all features/args of the corresponding test cases.
+
+o Everything else: utilities/helper functions for test case implementations.
+
+
+ * @section psl_test_readme_details libpalmsockettestblade Details
+
+libpalmsockettestblade makes use of WiresessSystemFramework library (wsf::*) for
+thread management and mainloop abstraction and WirelessSystemFramework Utilities (wtu::*) for
+command-line test framework and test utilitites.  If you're using libpalmsockettestblade
+as sample code, but can't use WiresessSystemFramework, and/or are using a different
+test framework (e.g., CxxTest), the following list will help you find alternatives:
+
+1. Creating, starting, and joining threads: use either pthread or glib's gthread
+for your thread creation and management, instead.
+
+2. Signaling completion of operations between different layers in the test (e.g.,
+wsf::RdAsyncBridge, rPeerDoneEvt_.Trigger();): you might not need this capability
+at all in your tests, but if you do, then you can replace this either with a pipe
+(write a character to alert the other layer that has a glib gi_io_channel watch
+monitoring the other end of the pipe) or attach a glib timer source with zero
+time-out to the gmain-context of the other layer (which is similar to what
+rPeerDoneEvt_.Trigger() does under the covers).
+
+3. Running the event loop (e.g., rd_.Run()): this is the equivalent of glib's
+gmain-loop run function (just a wrapper around gmain-loop).  Use glib'sgmain-loop
+instead.  Since libpalmsocket requires gmain-context for it's runtime processing,
+you will see code like this in a few places:
+(GMainLoop*)wsf::RuntimeDispatcher::GetInternalLoop(rd_) -- you won't need this,
+since you will already have your own glib gmain-loop and gmain-context.
+
+4. Progress reporting (e.g., pTxProgress_->Tick(numWritten);):  Use your test
+framework's logging capability as needed.
+
+5. Registering with the test framework and processing arguments from the test
+framework (e.g., TestCmdStress::Register()): your test framework should have it's
+own mechanism for integrating tests, so you don't need this.
+
+
+Source code structure: the following should help you navigate the test code:
+
+1. The tests are implemented in TestCmd<test-name>.cpp files (e.g., TestCmdStress.cpp).
+Each such file contains a class called TestCmd<test-name> (e.g., TestCmdStress)
+that registers the test with the framework, parsers the arguments, and kick-starts
+the test.  For the complex tests, such as "stress", all of the core test logic is
+separated out into additional classes.  Simpler tests, such as TestCmdHostLookup,
+may contain their entire logic in a single class.
+
+2. Execution of each test begins in its Execute method (e.g., TestCmdStress::Execute()).
+This function basically creates the top level test object(s) and starts it/them;
+then runs its own main-loop (e.g., rd_.Run());  When the main-loop terminates, it
+stops the test object (e.g,  pClientMgr->Stop(), pServerMgr->Stop()), then prints
+results (e.g., pClientMgr->PrintStats()).
+
+3. The test objects do the actual work (e.g., pClientMgr, pServerMgr), and their
+classes do _not_ have much internal library usage.  For example,
+TestCmdStressServer.hpp, contains the following classes:
+
+3.a) StressServerMgr: starts its own thread (ServerMgrThreadFunc), opens a listening
+socket, initializes openssl, creates an openssl SSL context (UtilMakeServerSSLCtx);
+accepts incoming connections on the listening socket, monitors the control connection
+(the first TCP/IP connection it accepts) to detect termination of client, creates
+and manages ServerPeer instances for each additional incoming TCP/IP connection
+(besides the control connection).  StressServerMgr uses an internal class for
+monitoring the listen and control sockets (e.g., pControlSockMon_ and
+listenSockMon_) -- if you can't use WirelessSystemFramework, you would use glib's
+g_io_channel_unix_new/g_io_create_watch instead (this is described in
+http://library.gnome.org/devel/glib/stable/glib-IO-Channels.html), then register
+a callback of type GIOFunc using g_source_set_callback, and attach the watch to
+the desired gmain-context using g_source_attach() (see
+http://library.gnome.org/devel/glib/stable/glib-The-Main-Event-Loop.html)
+
+3.b) ServerPeer: Creates a PmSock channel for use by the server peer (PmSockCreateChannel,
+PmSockSetConnectedFD); creates a thread for the server peer, and places the PmSock
+channel in plaintext mode (PmSockConnectPlain); reads a command over the PmSock
+channel from the ClientPeer (this is to support client/server running in different
+processes/devices; if yours will always be running in the same process, you may
+simply pass the parameters when you instantiate the server peer instance, so no
+need to send a command via the channel).  After receiving the command, ServerPeer
+instantiates and starts a StressSession instance.
+
+3.c) StressSession (in TestCmdStressSession.hpp): for SSL/TLS requests, when running
+as server, it starts the server-side handshake via PmSockAcceptCrypto (PmSockConnectCrypto
+when running as client); then, it performs data exchange with the remote peer
+(BeginDataExchange/DoDataIO); after sending/receiving all expected data, it sends
+a report to its peer (BeginReportExchange/DoReportIO -- you should not need the
+report if running in the same process); then, performs graceful SSL shutdown if
+running in SSL mode (BeginGracefulTwoWayShutdown/DoGracefulTCPShutdown); then,
+performs graceful TCP/IP shutdown (BeginGracefulTCPShutdown/DoGracefulTCPShutdown).
+It can also be instructed to perform SSL renegotiation (see TriggerSSLRenegotiation).
+
+*/
+
+
+/**@}*/

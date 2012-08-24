@@ -1,0 +1,7 @@
+#will restore original /etc/hosts file from backup
+
+mount -o remount, rw /
+
+mv /etc/hosts.backup /etc/hosts
+
+mount -o remount, ro /

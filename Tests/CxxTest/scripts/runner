@@ -1,0 +1,8 @@
+#a simple runner, which will modifyi the /etc/hosts file each time the tests are run, than restore it after the tests have finished
+#be sure not to use this script in case you modified /etc/hosts 'by hand', calling ./modifyHosts script
+
+./modifyHosts
+
+./CxxTests
+
+./restoreHosts

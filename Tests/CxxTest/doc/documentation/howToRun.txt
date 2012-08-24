@@ -1,0 +1,23 @@
+#SVNDIR should be defined to appropriate svn root
+
+export SVNDIR=~/svn
+
+#change to scripts directory, upload all the files (novacom utility should be in path)
+
+cd $SVNDIR/scripts
+./upload
+
+#on device use either runner script:
+./runner
+
+
+#or run the following before cxx tests are run, to appropriately modify the hosts file:
+./modifyHosts
+
+#after this you can run the tests as many times as you want:
+./CxxTests
+
+#run the following to restore  /etc/hosts to its original state, after testing has finished:
+./restoreHosts
+
+
